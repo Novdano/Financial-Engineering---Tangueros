@@ -48,6 +48,8 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
         s_max = const.s_0
         d_t = T / n_step
         for j in range (n_step-1):
+            if (v_t < 0):
+                v_t = 0
             d_w_t_1 = np.random.normal(0, d_t**0.5, 1)
             d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_w_t_1
             s[i][j+1] = s[i][j]+d_s_t[0]
