@@ -2,7 +2,6 @@ import const
 import math 
 import numpy as np
 import matplotlib.pyplot as plt
-# np.standard_normal(1)
 
 #alpha is the mean reversion rate
 #theta is the long term vol avg
@@ -70,8 +69,14 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
         drawdown = (s_max-s[i][-1])/s_max
         if (drawdown > 0.1):
             p[i] = max((rv - (const.bs_vol+0.05)**2),0) * const.notional   
-    return s
+    return s, p
 
-mc_s = mc_df(10, 4, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 1)
-plt.plot(mc_s.T)
-plt.show()
+def check_s_martingale(s):
+    discounted_s = (np.sum(s,axis=0)[-1] / len(s)) * math.exp(- const.r)
+    return discounted_s
+
+def plot_mc(s):
+    plt.plot(mc_s.T)
+    plt.show()
+
+mc_s, mc_p = mc_df(1000, 100, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 1)
