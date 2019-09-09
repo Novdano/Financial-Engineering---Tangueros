@@ -73,6 +73,6 @@ def plot_mc(s):
     plt.show()
 
 #mc_s, mc_p = mc_df(10, 4, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 1)
-mc_s, mc_p = mc_df(1000, 100, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 1)
+mc_s, mc_p = mc_df(10, 4, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 1)
 #plt.plot(mc_s.T)
 #plt.show()
