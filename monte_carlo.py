@@ -24,14 +24,14 @@ def one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, opti
     for j in range(n_step-1):
         if (v_t < 0):
             v_t = 0
-        d_w_t_1 = np.random.normal(0, d_t**0.5, 1)
-        d_s_t = miu * s[j] *d_t + (v_t**0.5) * s[j] * d_w_t_1
+        d_w_t_1 = np.random.normal(0, 1, 1)
+        d_s_t = miu * s[j] *d_t + (v_t**0.5) * s[j] * d_t**0.5 * d_w_t_1
         s[j+1] = s[j]+d_s_t[0]
-        d_w_t_2 = np.random.normal(0, d_t**0.5, 1)
+        d_w_t_2 = np.random.normal(0, 1, 1)
         #d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
         d_w_t_3 = d_w_t_2
         #print(d_w_t_1, d_w_t_2)
-        d_v_t = alpha * ( theta - v_t ) * d_t + phi * (v_t**0.5) * d_w_t_3
+        d_v_t = alpha * ( theta - v_t ) * d_t + phi * (v_t**0.5) * d_t**0.5 *d_w_t_3
         v_t += d_v_t
     if option == const.PUT:
         payoff = strike - s[-1]
@@ -67,15 +67,15 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
         for j in range (n_step-1):
             if (v_t < 0):
                 v_t = 0
-            d_w_t_1 = np.random.normal(0, d_t**0.5, 1)
-            d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_w_t_1
+            d_w_t_1 = np.random.normal(0, 1, 1)
+            d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_t**0.5 * d_w_t_1
             s[i][j+1] = s[i][j]+d_s_t[0]
             R_t = np.log(s[i][j+1]/s[i][j])
             rv += (R_t)**2
             if(s[i][j+1] >= s_max):
                 s_max = s[i][j+1]
-            d_w_t_2 = np.random.normal(0, d_t**0.5, 1)
-            d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_w_t_2
+            d_w_t_2 = np.random.normal(0, 1, 1)
+            d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_2
             v_t += d_v_t
             rv /= n_step
         drawdown = (s_max-s[i][-1])/s_max
