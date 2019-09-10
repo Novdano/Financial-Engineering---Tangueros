@@ -13,9 +13,7 @@ def loss_function( params ):
             for j in range(len(const.strikes[i])):
                 k = const.strikes[i][j]
                 p = const.prices[i][j]
-<<<<<<< HEAD
                 mc_s, mc_p = mc.mc_vanilla(10, 100, alpha, theta, phi, -0.3, const.s_0, 
-=======
                 n_sim = 1000
                 n_step = 100
                 mc_s, mc_p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, -0.3, const.s_0, 
