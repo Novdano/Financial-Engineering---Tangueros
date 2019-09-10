@@ -45,8 +45,15 @@ def loss_function_smile( params ):
     phi = params[0]
 
 
-def calibrate_sv():
-    initial_params = [1, 1, 1]
+'''def calibrate_sv(initial_params):
+    constraints = ( {'type': 'ineq', 'fun': lambda x: x[0]},
+                    {'type': 'ineq', 'fun': lambda x: x[1]},
+                    {'type': 'ineq', 'fun': lambda x: x[2]} )
+    bounds = ((0, None), (0, 1), (0, 1))
+    return(minimize(loss_function, initial_params, method="Anneal",
+        tol=1e-6, bounds=bounds))'''
+
+def calibrate_sv(initial_params):
     constraints = ( {'type': 'ineq', 'fun': lambda x: x[0]},
                     {'type': 'ineq', 'fun': lambda x: x[1]},
                     {'type': 'ineq', 'fun': lambda x: x[2]} )
@@ -54,4 +61,6 @@ def calibrate_sv():
     bounds = ((0, None), (0, 1), (0, 1))
     return( basinhopping(loss_function, initial_params, minimizer_kwargs=minimizer_kwargs, niter=200) )
 
-print(calibrate_sv())
+calibrate_sv( [1, 1, 1 ] )
+
+

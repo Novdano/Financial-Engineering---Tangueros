@@ -98,6 +98,6 @@ def plot_mc(s):
 mc_s, mc_p = mc_vanilla(1000, 100, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 100, 1)
 m = np.array(mc_s)
 #print(np.mean(m, axis=0))
-#print(np.mean(m, axis=0)[-1] * (1 + const.r/100)**(-100))
+print(np.mean(m, axis=0)[-1] * (1 + const.r/100)**(-100))
 #plt.plot(mc_s.T)
 #plt.show()
