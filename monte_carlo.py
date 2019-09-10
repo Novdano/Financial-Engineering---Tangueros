@@ -16,12 +16,12 @@ def collect_results(result):
 
 def one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option=const.PUT):
     miu = const.r       
-    s = np.zeros(n_step)
+    s = np.zeros(n_step+1)
     s[0] = s_0
     v_t = sigma_0
     rv = 0
     d_t = T / n_step
-    for j in range(n_step-1):
+    for j in range(n_step):
         if (v_t < 0):
             v_t = 0
         d_w_t_1 = np.random.normal(0, 1, 1)
@@ -32,7 +32,7 @@ def one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, opti
         #d_w_t_3 = d_w_t_2
         #print(d_w_t_1, d_w_t_2)
         d_v_t = alpha * ( theta - v_t ) * d_t + phi * (v_t**0.5) * d_t**0.5 *d_w_t_3
-        v_t += d_v_t
+        v_t += d_v_t[0]
     if option == const.PUT:
         payoff = strike - s[-1]
     elif option == const.CALL:
@@ -47,14 +47,16 @@ def one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, opti
 def mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option=const.PUT):
     #initiate pool
     #pool = mp.Pool(mp.cpu_count())
+    ret_s = []
+    ret_p = []
     for i in range (n_sim):
         s, payoff = one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option)
-        mc_s.append(s)
-        mc_p.append(payoff)
+        ret_s.append(s)
+        ret_p.append(payoff)
         #pool.apply_async(one_simulation, args=(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option), callback=collect_results)
     #pool.close()
     #pool.join()
-    return mc_s, mc_p
+    return ret_s, ret_p
 
 
 def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
