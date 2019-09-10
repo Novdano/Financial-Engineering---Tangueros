@@ -46,11 +46,14 @@ def one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, opti
 #phi is vol of vol
 def mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option=const.PUT):
     #initiate pool
-    pool = mp.Pool(mp.cpu_count())
+    #pool = mp.Pool(mp.cpu_count())
     for i in range (n_sim):
-        pool.apply_async(one_simulation, args=(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option), callback=collect_results)
-    pool.close()
-    pool.join()
+        s, payoff = one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option)
+        mc_s.append(s)
+        mc_p.append(payoff)
+        #pool.apply_async(one_simulation, args=(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option), callback=collect_results)
+    #pool.close()
+    #pool.join()
     return mc_s, mc_p
 
 
@@ -94,7 +97,7 @@ def plot_mc(s):
 #mc_s, mc_p = mc_df(10, 4, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 1)
 mc_s, mc_p = mc_vanilla(1000, 100, 0.01, 0.1, 0.02, -0.3, const.s_0, const.atm_iv_1m, 100, 1)
 m = np.array(mc_s)
-print(np.mean(m, axis=0))
-print(np.mean(m, axis=0)[-1] * (1 + const.r/100)**(-100))
+#print(np.mean(m, axis=0))
+#print(np.mean(m, axis=0)[-1] * (1 + const.r/100)**(-100))
 #plt.plot(mc_s.T)
 #plt.show()
