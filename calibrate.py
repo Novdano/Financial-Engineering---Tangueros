@@ -4,13 +4,14 @@ import monte_carlo as mc
 import const
 
 set_alpha = 1.2
-set_theta = 0.08
-set_phi = 0.36
+set_theta = 0.3
+set_phi = 0.05
 set_rho = -0.4
 
 #alpha is rate of reversion, theta is long term vol, phi is vol of vol
 def loss_function( params ):
-    alpha, theta, phi, rho = params
+    alpha, phi, rho = params
+    theta = set_theta
     mse = 0
     num = 0
     for i in range(len(const.T)):
@@ -18,19 +19,20 @@ def loss_function( params ):
         for j in range(len(const.strikes[i])):
             k = const.strikes[i][j]
             p = const.prices[i][j]
-            n_sim = 1000
+            n_sim = 100
             n_step = 100
             mc_s, mc_p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, const.s_0, 
                         const.atm_iv_1m, k, t, const.CALL )
             pred_p = np.mean(mc_p) * (1 + const.r/n_step)**(-n_step)
-            #print(pred_p, p)
+            print(pred_p, p)
             mse += (pred_p - p) ** 2
             num += 1
     return mse / num
 
 
 def loss_function_vec( params ):
-    alpha, theta, phi, rho = params
+    alpha, phi, rho = params
+    theta = set_theta
     mse = 0
     num = 0
     residual = []
@@ -44,7 +46,7 @@ def loss_function_vec( params ):
             mc_s, mc_p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, const.s_0, 
                         const.atm_iv_1m, k, t, const.CALL )
             pred_p = np.mean(mc_p) * (1 + const.r/n_step)**(-n_step)
-            #print(pred_p, p)
+            print(pred_p, p)
             residual.append(pred_p - p)
             mse += (pred_p - p) ** 2
             num += 1
@@ -188,19 +190,19 @@ def lsq_term():
     print( "Loss:%d" %(cost))
 
 def main_lsq():
-    bound_term = ([0, 0],[np.inf, 1])
+    bound_term = ([0, 0])
     bound_smile = ([0,-1], [1,1])
-    full_bound = ([0,0,0,-1], [np.inf, 1, 1, 1])
+    full_bound = ([0,0,-1], [np.inf, 1, 1])
     global set_alpha, set_theta, set_phi, set_rho
-    cost = loss_function([set_alpha, set_theta, set_phi, set_rho])
+    cost = loss_function([set_alpha, set_phi, set_rho])
     ls_output = least_squares( loss_function_vec, 
-                        [set_alpha, set_theta, set_phi, set_rho], 
+                        [set_alpha, set_phi, set_rho], 
                         verbose=2, diff_step = 0.1,
                         bounds=full_bound)
-    set_alpha, set_theta, set_phi, set_rho = ls_output.x
-    cost = loss_function([set_alpha, set_theta, set_phi, set_rho])
+    set_alpha, set_phi, set_rho = ls_output.x
+    cost = loss_function([set_alpha, set_phi, set_rho])
     print(ls_output)
-    print( set_alpha, set_theta, set_phi, set_rho )
+    print( set_alpha, set_phi, set_rho )
     print( "Loss:%d" %(cost))
     #calibrate alpha and theta
     '''
@@ -222,8 +224,8 @@ def main_lsq():
 
 #main_minim()
 #main_lsq()
-#loss_function( [4.1, 0, 1, -0.8] )
-lsq_term()
+loss_function( [1.22, 0.0721067, -0.414730398065] )
+#lsq_term()
 
 #print(calibrate_sv([set_alpha, set_theta, set_phi, set_rho]))
 

@@ -13,50 +13,38 @@ def collect_results(result):
     mc_s.append(result[0])
     mc_p.append(result[1])
 
-
-def one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option=const.PUT):
-    miu = const.r       
-    s = np.zeros(n_step+1)
-    s[0] = s_0
-    v_t = sigma_0
-    rv = 0
-    d_t = T / n_step
-    for j in range(n_step):
-        if (v_t < 0):
-            v_t = 0
-        d_w_t_1 = np.random.normal(0, 1, 1)
-        d_s_t = miu * s[j] *d_t + (v_t**0.5) * s[j] * d_t**0.5 * d_w_t_1
-        s[j+1] = s[j]+d_s_t[0]
-        d_w_t_2 = np.random.normal(0, 1, 1)
-        d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
-        #d_w_t_3 = d_w_t_2
-        #print(d_w_t_1, d_w_t_2)
-        d_v_t = alpha * ( theta - v_t ) * d_t + phi * (v_t**0.5) * d_t**0.5 *d_w_t_3
-        v_t += d_v_t[0]
-    if option == const.PUT:
-        payoff = strike - s[-1]
-    elif option == const.CALL:
-        payoff = s[-1] - strike
-    if( payoff < 0 ):
-        payoff = 0
-    return s, payoff  
-
 #alpha is the mean reversion rate
 #theta is the long term vol avg
 #phi is vol of vol
 def mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option=const.PUT):
-    #initiate pool
-    #pool = mp.Pool(mp.cpu_count())
-    ret_s = []
-    ret_p = []
+    miu = const.r
+    s = np.zeros((n_sim, n_step))
+    p = np.zeros((n_sim,1))
     for i in range (n_sim):
-        s, payoff = one_simulation(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option)
-        ret_s.append(s)
-        ret_p.append(payoff)
-        #pool.apply_async(one_simulation, args=(n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, option), callback=collect_results)
-    #pool.close()
-    #pool.join()
-    return ret_s, ret_p
+        s[i][0] = s_0
+        v_t = sigma_0
+        rv = 0
+        d_t = T / n_step
+        for j in range(n_step-1):
+            if (v_t < 0):
+                v_t = 0
+            d_w_t_1 = np.random.normal(0, d_t**0.5, 1)
+            d_s_t = miu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_w_t_1
+            s[i][j+1] = s[i][j]+d_s_t[0]
+            d_w_t_2 = np.random.normal(0, d_t**0.5, 1)
+            #d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
+            d_w_t_3 = d_w_t_2
+            #print(d_w_t_1, d_w_t_2)
+            d_v_t = alpha * ( theta - v_t ) * d_t + phi * (v_t**0.5) * d_w_t_3
+            v_t += d_v_t
+        if option == const.PUT:
+            payoff = strike - s[i][-1]
+        elif option == const.CALL:
+            payoff = s[i][-1] - strike
+        if( payoff < 0 ):
+            payoff = 0
+        p[i] = payoff
+    return s, p
 
 
 def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
