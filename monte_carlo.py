@@ -96,8 +96,9 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
     return var_low, var_high, mean, sd, mean/sd
 
 #mc_s, mc_p = mc_df(100, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
-mc_s, mc_p = mc_vanilla(1000, 100, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 100, 1)
-print(check_s_martingale(mc_s))
+#mc_s, mc_p = mc_vanilla(1000, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 100, 1)
+#print("Price: %.5f" %( np.mean(mc_p) * math.exp(-const.r)))
+#print(check_s_martingale(mc_s))
 #m = np.array(mc_s)
 #print(np.mean(m, axis=0))
 #print(np.mean(m, axis=0)[-1] * (1 + const.r/100)**(-100))
