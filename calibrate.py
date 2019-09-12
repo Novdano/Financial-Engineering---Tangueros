@@ -14,19 +14,19 @@ def loss_function( params ):
     #theta = set_theta
     mse = 0
     num = 0
-    for i in range(len(const.T)):
-        t = const.T[i]
-        #for j in range(len(const.strikes[i])):
-        k = const.strikes[i][1]
-        p = const.prices[i][1]
-        n_sim = 100
-        n_step = 100
-        mc_s, mc_p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, const.s_0, 
-                    const.atm_iv_1m, k, t, const.CALL )
-        pred_p = np.mean(mc_p) * (1 + const.r/n_step)**(-n_step)
-        print(pred_p, p)
-        mse += (pred_p - p) ** 2
-        num += 1
+    for j in range(len(const.strikes[0])):
+        for i in range(len(const.T)):
+            t = const.T[i]
+            k = const.strikes[i][j]
+            p = const.prices[i][j]
+            n_sim = 100
+            n_step = 100
+            mc_s, mc_p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, const.s_0, 
+                        const.atm_iv_1m, k, t, const.CALL )
+            pred_p = np.mean(mc_p) * (1 + const.r/n_step)**(-n_step)
+            print(pred_p, p)
+            mse += (pred_p - p) ** 2
+            num += 1
     return mse / num
 
 
@@ -229,7 +229,7 @@ def main_lsq():
 #main_minim()
 #main_minim()
 #main_lsq()
-print(loss_function( [ 2, 0.00648, 0.08758427, -0.599732] ))
+print(loss_function( [10.97858327,  0.12214962,  0.00001, -0.55156066] ))
 
 #lsq_term()
 
