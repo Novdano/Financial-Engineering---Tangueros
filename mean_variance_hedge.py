@@ -15,7 +15,7 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     for i in range (len(p_0)):
         strike_i = strike_percentage[i] * forward
         is_call = 1
-        if i <= 5:
+        if i < n_opt / 2:
             is_call = 0
         s, p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, forward, sigma_0, strike_i, T, is_call)
         p_0[i] = np.mean(p) * math.exp(-const.r * T)
@@ -25,7 +25,8 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     return replication_price, var_swap_strike
 
 #var_swap_strike = var_swap_replication(100, 100, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
-var_swap_strike = 0.265604
+#var_swap_strike = 0.265604
+var_swap_strike = 0.16
 
 def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
@@ -63,15 +64,19 @@ def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=c
 def portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
     #print("s_T: ",s_T,"p:", p,"var_swap_T", var_swap_T)
-    return np.var(n_stock * s_T + n_var_swap * var_swap_T - p)
+    return np.var(n_stock * s_T + n_var_swap * var_swap_T - p * const.notional- (n_stock*s_0 + const.charge) * math.exp(const.r * T))
+
+def client_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
+    s, p = mc.mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
+    return np.var(p * const.notional - const.charge)
 
 def portfolio_return(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
-    return np.mean(n_stock * s_T + n_var_swap * var_swap_T - p)
+    return np.mean(n_stock * s_T + n_var_swap * var_swap_T - p * const.notional- (n_stock*s_0 + const.charge) * math.exp(const.r * T))
 
 def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     constraints = { "type": "eq", 'fun': portfolio_return, 'args': (n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max, )  }
-    ret = minimize( portfolio_var, [n_stock, n_var_swap], args=(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max,),
+    ret = minimize(portfolio_var, [n_stock, n_var_swap], args=(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max,),
         method="SLSQP", constraints = constraints, bounds = [(-1,0.5), (-1,0.5)] )
     print(ret)
     return ret.x
@@ -79,6 +84,7 @@ def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0
 #############################################################################
 # Simulated Annealing
 #############################################################################
+
 N_SIM = 100
 N_STEP = 100
 ALPHA = 10.97858327
@@ -109,7 +115,8 @@ def neighbor(n_stock, n_var_swap):
         new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
         mean = portfolio_return(new_n_stock, new_n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
         i += 1
-    return new_n_stock, new_n_var_swap
+    return new_n_stock, new_n_var_swap, mean
+
 
 def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     old_var = portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
@@ -119,8 +126,8 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
     best_var = 1000000
     best_sol = None
     while(T > T_min):
-        for i in range (20):
-            new_n_stock, new_n_var_swap = neighbor(n_stock, n_var_swap)
+        for i in range (100):
+            new_n_stock, new_n_var_swap, mean = neighbor(n_stock, n_var_swap)
             new_var = portfolio_var(new_n_stock, new_n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
             accept_prob = acceptence_probability(old_var, new_var, T)
             if (new_var < old_var):
@@ -134,12 +141,14 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
                     n_stock, n_var_swap = new_n_stock, new_n_var_swap
                     old_var = new_var
                     print(n_stock, n_var_swap, old_var)
+                #mean = portfolio_return(n_stock, n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
         T = T * a
     return n_stock, n_var_swap, old_var
 
 
 
 sim_anneal(0,0, 100, 100, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
+
 
 # def bs_v_0(s_0,k,sigma,T):
 #         d1 = (log(s_0/k) + (r + sigma^2/2)*T)/(sigma * sqrt(T))

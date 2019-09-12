@@ -66,9 +66,10 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
             d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_3
             v_t += d_v_t
         drawdown = (s_max-s[i][-1])/s_max
+        
         if (drawdown > 0.1):
             p[i] = max((rv - (const.bs_vol+0.05)**2),0) * const.notional   
-    return s,p
+    return s, p
 
 def check_s_martingale(s):
     discounted_s = np.sum( mc_s[:,-1] )/len( mc_s[:,-1] ) * math.exp(-const.r)
@@ -78,13 +79,19 @@ def plot_mc(s):
     plt.plot(mc_s.T)
     plt.show()
 
+#returns the 5% VaR and 95% VaR
 def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     mc_s, mc_p = mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max)
     var_low = np.quantile(mc_p,0.05)
     var_high = np.quantile(mc_p,0.95)
     mean = np.mean(mc_p)
     sd = np.std(mc_p)
-    return var_low, var_high, mean, sd, mean/sd
+    return const.charge - var_low, const.charge - var_high, mean - const.charge
+
+#(0.15293256546944, 0.07980132902222221, -0.11260251422444387)
+#There's 5% chance that client may lose $0.1529 per 1$
+#There's a 95% chance that the client may lose $0.07980 oper 1$
+
 
 #mc_s, mc_p = mc_df(100, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
 #mc_s, mc_p = mc_vanilla(1000, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 100, 1)
