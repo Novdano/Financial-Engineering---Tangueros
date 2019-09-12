@@ -3,6 +3,7 @@ from scipy.optimize import minimize
 import math
 import const
 import monte_carlo as mc 
+from random import random
 
 def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
     strike_percentage =  np.array([50,55,60,65,70,75,80,120,125,130,135,140,145,150]) * 0.01
@@ -74,6 +75,61 @@ def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0
         method="SLSQP", constraints = constraints, bounds = [(-1,0.5), (-1,0.5)] )
     print(ret)
     return ret.x
+
+#############################################################################
+# Simulated Annealing
+#############################################################################
+N_SIM = 100
+N_STEP = 100
+ALPHA = 10.97858327
+THETA = 0.12214962
+PHI = 0.00001
+RHO = -0.55156066
+S_0 = const.s_0
+SIGMA_0 = const.atm_iv_1m
+TIME = 1
+
+TARGET_RETURN = 0
+
+def acceptence_probability(old_var, new_var, T):
+    return math.exp((old_var-new_var)/T)
+
+
+def neighbor(n_stock, n_var_swap):
+    sd_s = 0.1
+    sd_v = 0.1
+    new_n_stock = np.random.normal(n_stock,sd_s,1)[0]
+    new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
+    mean = portfolio_return(n_stock, n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
+    while(mean < 0):
+        sd_s /= 2
+        sd_v /=2
+        new_n_stock = np.random.normal(n_stock,sd_s,1)[0]
+        new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
+        mean = portfolio_return(new_n_stock, new_n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
+    return new_n_stock, new_n_var_swap
+
+def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
+    old_var = portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
+    T = 1
+    T_min = 10**(-4)
+    a = 0.9
+    while(T > T_min):
+        for i in range (20):
+            new_n_stock, new_n_var_swap = neighbor(n_stock, n_var_swap)
+            new_var = portfolio_var(new_n_stock, new_n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
+            accept_prob = acceptence_probability(old_var, new_var, T)
+            if(accept_prob > random()):
+                n_stock, n_var_swap = new_n_stock, new_n_var_swap
+                old_var = new_var
+                print(n_stock, n_var_swap, old_var)
+        T = T * a
+    return n_stock, n_var_swap, old_var
+
+
+
+
+
 # def bs_v_0(s_0,k,sigma,T):
 #         d1 = (log(s_0/k) + (r + sigma^2/2)*T)/(sigma * sqrt(T))
 #         d2 = (log(S_0/k) + (r - sigma^2/2)*T)/(sigma * sqrt(T)) 
@@ -99,17 +155,17 @@ def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0
 
 #var_swap_replication(100, 100, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
 
-def optimize(prices, symbols, target_return=0.1):
-    normalized_prices = prices / prices.ix[0, :]
-    init_guess = np.ones(len(symbols)) * (1.0 / len(symbols))
-    bounds = ((0.0, 1.0),) * len(symbols)
-    weights = minimize(get_portfolio_risk, init_guess,
-                       args=(normalized_prices,), method='SLSQP',
-                       options={'disp': False},
-                       constraints=({'type': 'eq', 'fun': lambda inputs: 1.0 - np.sum(inputs)},
-                                    {'type': 'eq', 'args': (normalized_prices,),
-                                     'fun': lambda inputs, normalized_prices:
-                                     target_return - get_portfolio_return(weights=inputs,
-                                                                          normalized_prices=normalized_prices)}),
-                       bounds=bounds)
-    return weights.x
+# def optimize(prices, symbols, target_return=0.1):
+#     normalized_prices = prices / prices.ix[0, :]
+#     init_guess = np.ones(len(symbols)) * (1.0 / len(symbols))
+#     bounds = ((0.0, 1.0),) * len(symbols)
+#     weights = minimize(get_portfolio_risk, init_guess,
+#                        args=(normalized_prices,), method='SLSQP',
+#                        options={'disp': False},
+#                        constraints=({'type': 'eq', 'fun': lambda inputs: 1.0 - np.sum(inputs)},
+#                                     {'type': 'eq', 'args': (normalized_prices,),
+#                                      'fun': lambda inputs, normalized_prices:
+#                                      target_return - get_portfolio_return(weights=inputs,
+#                                                                           normalized_prices=normalized_prices)}),
+#                        bounds=bounds)
+#     return weights.x
