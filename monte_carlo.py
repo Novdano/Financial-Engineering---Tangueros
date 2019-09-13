@@ -93,8 +93,8 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 #There's a 95% chance that the client may lose $0.07980 oper 1$
 
 ALPHA = 10.97858327
-THETA = 0.025214962
-PHI = 0.00001
+THETA = 0.0214962
+PHI = 0.01362476
 RHO = -0.55156066
 mc_s, mc_p = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #print(np.mean(mc_p) * math.exp(-const.r))
