@@ -24,9 +24,10 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     var_swap_strike = math.sqrt(replication_price / math.exp(-const.r * T))
     return replication_price, var_swap_strike
 
-#var_swap_strike = var_swap_replication(100, 100, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
+price, var_swap_strike = var_swap_replication(1000, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
+print(price, var_swap_strike)
 #var_swap_strike = 0.265604
-var_swap_strike = 0.16
+#var_swap_strike = 0.16
 
 def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
@@ -147,30 +148,13 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
 
 
 
-sim_anneal(0,0, 100, 100, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
+#############################################################################
+# Dynamic Hedging
+#############################################################################
+
+#n_rebalance is the number of times to rebalance in 1 year, done at an equal interval
+def dynamic_hedge_portfolio(n_stock, n_var_swap, n_sim, n_step, n_rebalance, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
+    
 
 
-# def bs_v_0(s_0,k,sigma,T):
-#         d1 = (log(s_0/k) + (r + sigma^2/2)*T)/(sigma * sqrt(T))
-#         d2 = (log(S_0/k) + (r - sigma^2/2)*T)/(sigma * sqrt(T)) 
-#         price = S_0 * pnorm(d1) - K*pnorm(d2) * exp(-r * T)
-#     return 
 
-# def v_swap_strike(s_0,k, v_0, T):
-#     sigma_lower = 0
-#     sigma_upper = 1
-#     sigma = sigma_lower
-#     v_1 = bs_v_0(s_0,k,sigma_lower,T)
-#     v_2 = bs_v_0(s_0,k,sigma_upper,T)
-#     diff = v_1 - v_0
-#     while(abs(diff)>0.000001):
-#         sigma = 0.5*(sigma_lower + sigma_upper)
-#         V = bs_v_0(s_0,k,sigma,T)
-#         diff = V - v_0
-#         if(V>v_0):
-#             sigma_upper = sigma
-#         else:
-#             sigma_lower = sigma
-#     return sigma
-
-#var_swap_replication(100, 100, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)

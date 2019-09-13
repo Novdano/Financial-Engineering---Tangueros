@@ -13,7 +13,7 @@ def mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, strike, T, o
     p = np.zeros((n_sim,1))
     for i in range (n_sim):
         s[i][0] = s_0
-        v_t = sigma_0
+        v_t = sigma_0**2
         rv = 0
         d_t = T / n_step
         for j in range(n_step-1):
@@ -44,7 +44,7 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
     mu = const.r
     for i in range (n_sim):
         s[i][0] = s_0
-        v_t = sigma_0
+        v_t = sigma_0**2
         rv = 0
         d_t = T / n_step
         for j in range (n_step-1):
@@ -66,9 +66,9 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
             d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_3
             v_t += d_v_t
         drawdown = (s_max-s[i][-1])/s_max
-        
+        #print(drawdown)
         if (drawdown > 0.1):
-            p[i] = max((rv - (const.bs_vol+0.05)**2),0) * const.notional   
+            p[i] = max((math.sqrt(rv) - (const.bs_vol+0.05)),0) * const.notional   
     return s, p
 
 def check_s_martingale(s):
@@ -92,8 +92,12 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 #There's 5% chance that client may lose $0.1529 per 1$
 #There's a 95% chance that the client may lose $0.07980 oper 1$
 
-
-#mc_s, mc_p = mc_df(100, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
+ALPHA = 10.97858327
+THETA = 0.12214962
+PHI = 0.00001
+RHO = -0.55156066
+mc_s, mc_p = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+#print(np.mean(mc_p) * math.exp(-const.r))
 #mc_s, mc_p = mc_vanilla(1000, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 100, 1)
 #print("Price: %.5f" %( np.mean(mc_p) * math.exp(-const.r)))
 #print(check_s_martingale(mc_s))
