@@ -55,8 +55,8 @@ def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=c
             v_t += d_v_t
         drawdown = (s_max-s[i][-1])/s_max
         if (drawdown > 0.1):
-            p[i] = max((rv - (const.bs_vol+0.05)**2),0) * const.notional
-        var_swap_T[i] = (rv - var_swap_strike**2)
+            p[i] = max((rv - (const.bs_vol+0.05)),0) * const.notional
+        var_swap_T[i] = (rv - var_swap_strike**2) 
     s_T = s[:,-1].reshape(-1,1)
     return s_T, p, var_swap_T
 
@@ -155,13 +155,14 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
 #assume market is very liquid, so hedging has no market impact
 def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
-    var_swap_T = np.zeros((n_sim,1))
+    rebalance_profit_list = np.zeros((n_sim,1))
     p = np.zeros((n_sim,1))
     mu = const.r
     for i in range (n_sim):
         s[i][0] = s_0
         v_t = sigma_0**2
         rv = 0
+        rv_var_swap = 0
         t = 0
         d_t = T / n_step
         next_t_rebalance = 0
@@ -170,19 +171,28 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
         n_var_swap = 0
         rebalance_profit = 0
         curr_var_swap_strike = 0
+        n_stock_list = []
+        n_var_swap_list = []
         for j in range (n_step-1):
             if (v_t < 0):
                 v_t = 0
             if ( t >= next_t_rebalance):
                 #do simulated annealing, find n_stock, n_var_swap and rebalance
                 new_n_stock, new_n_var_swap, new_old_var = sim_anneal(0,0, n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t, s_max=s_max)
-                var_swap_strike = var_swap_replication( n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t)
+                n_stock_list.append(new_n_stock)
+                n_var_swap_list.append(new_n_var_swap)
+                new_var_swap_strike = var_swap_replication( n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t)
                 #rebalance the portfolio
                 delta_stock_notional = (new_n_stock - n_stock) * s_t
-                delta_var_swap_notional = (new_n_var_swap - n_var_swap)
+                var_swap_mtm = dt_rebalance/(T - next_t_rebalance) * ( rv - curr_var_swap_strike**2 ) + \
+                                    (T-next_t_rebalance - dt_rebalance)/(T-next_t_rebalance) * ( new_var_swap_strike - curr_var_swap_strike )
+                delta_var_swap_notional = n_var_swap * var_swap_mtm
                 rebalance_profit = delta_stock_notional + delta_var_swap_notional
+                #update variables
                 n_stock = new_n_stock
                 n_var_swap = new_n_var_swap
+                curr_var_swap_strike = new_var_swap_strike
+                rv_var_swap = 0 #reset the accumulated realized variance
                 #update next rebalance time
                 next_t_rebalance += dt_rebalance
             d_w_t_1 = np.random.normal(0, 1, 1)
@@ -190,6 +200,7 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
             s[i][j+1] = max(s[i][j]+d_s_t[0],1)
             R_t = math.log(s[i][j+1]/s[i][j])
             rv += (R_t)**2
+            rv_var_swap += (R_t)**2
             if(s[i][j+1] >= s_max):
                 s_max = s[i][j+1]
             d_w_t_2 = np.random.normal(0, 1, 1)
@@ -199,11 +210,15 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
             t += dt
         drawdown = (s_max-s[i][-1])/s_max
         if (drawdown > 0.1):
-            p[i] = max((rv - (const.bs_vol+0.05)**2),0) * const.notional
-        var_swap_T[i] = (rv - var_swap_strike**2)
+            p[i] = max((rv - (const.bs_vol+0.05)),0) * const.notional
+        rebalance_profit += n_stock * s_t
+        rebalance_profit += ( rv_var_swap - curr_var_swap_strike**2) * n_var_swap
+        rebalance_profit_list[i] = rebalance_profit
     s_T = s[:,-1].reshape(-1,1)
-    return s_T, p, var_swap_T
+    return rebalance_profit_list, s_T, p
 
+
+dynamic_hedge_portfolio( 100, 100, 4, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
 
 
 
