@@ -4,15 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 
-
-mc_p = []
-mc_s = []
-def collect_results(result):
-    global mc_p
-    global mc_s
-    mc_s.append(result[0])
-    mc_p.append(result[1])
-
 #alpha is the mean reversion rate
 #theta is the long term vol avg
 #phi is vol of vol

@@ -107,33 +107,47 @@ def neighbor(n_stock, n_var_swap):
     new_n_stock = np.random.normal(n_stock,sd_s,1)[0]
     new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
     mean = portfolio_return(n_stock, n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
+    i = 0
     while(mean < 0):
-        #sd_s /= 2
-        #sd_v /= 2
-        new_n_stock = np.random.normal(n_stock, sd_s,1)[0]
-        new_n_var_swap = np.random.normal(n_var_swap, sd_v,1)[0]
+        sd_s *= 2
+        sd_v *=2
+        new_n_stock = np.random.normal(n_stock,sd_s,1)[0]
+        new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
         mean = portfolio_return(new_n_stock, new_n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
+        i += 1
     return new_n_stock, new_n_var_swap, mean
+
 
 def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     old_var = portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
     T = 1
     T_min = 10**(-4)
     a = 0.9
+    best_var = 1000000
+    best_sol = None
     while(T > T_min):
         for i in range (100):
             new_n_stock, new_n_var_swap, mean = neighbor(n_stock, n_var_swap)
             new_var = portfolio_var(new_n_stock, new_n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
             accept_prob = acceptence_probability(old_var, new_var, T)
-            if(accept_prob > random()):
+            if (new_var < old_var):
                 n_stock, n_var_swap = new_n_stock, new_n_var_swap
                 old_var = new_var
+                best_var = new_var
+                best_sol = (new_n_stock, new_n_var_swap)
+                print(n_stock, n_var_swap, old_var)
+            else:
+                if(accept_prob > random()):
+                    n_stock, n_var_swap = new_n_stock, new_n_var_swap
+                    old_var = new_var
+                    print(n_stock, n_var_swap, old_var)
                 #mean = portfolio_return(n_stock, n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
-                print(n_stock, n_var_swap, old_var, mean)
         T = T * a
     return n_stock, n_var_swap, old_var
 
 
+
+sim_anneal(0,0, 100, 100, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
 
 
 # def bs_v_0(s_0,k,sigma,T):
@@ -160,18 +174,3 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
 #     return sigma
 
 #var_swap_replication(100, 100, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
-
-# def optimize(prices, symbols, target_return=0.1):
-#     normalized_prices = prices / prices.ix[0, :]
-#     init_guess = np.ones(len(symbols)) * (1.0 / len(symbols))
-#     bounds = ((0.0, 1.0),) * len(symbols)
-#     weights = minimize(get_portfolio_risk, init_guess,
-#                        args=(normalized_prices,), method='SLSQP',
-#                        options={'disp': False},
-#                        constraints=({'type': 'eq', 'fun': lambda inputs: 1.0 - np.sum(inputs)},
-#                                     {'type': 'eq', 'args': (normalized_prices,),
-#                                      'fun': lambda inputs, normalized_prices:
-#                                      target_return - get_portfolio_return(weights=inputs,
-#                                                                           normalized_prices=normalized_prices)}),
-#                        bounds=bounds)
-#     return weights.x

@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 T = c(0.25, 0.5, 0.75, 1)
-strikes = c(c(95, 100 ,105),
+strikes = list(c(95, 100 ,105),
             c(95, 100 ,105),
             c(100 ,105, 110),
             c(100 ,105, 110))
@@ -154,18 +154,20 @@ loss_function <- function(param_vectors){
   miu <- param_vectors[[3]]
   rho<- param_vectors[[4]]
   kappa <- (a + miu^2)/(2*theta)
-  sv_est = rep(0, length(T) * length(strikes[[1]]))
-  mkt_px = rep(0, length(T) * length(strikes[[1]]))
+  sv_est = c()
+  mkt_px = c()
   for(i in 1:length(T)){
     for(j in 1:length(strikes[[i]])){
       r = 0.0411
       tau = T[[i]]
       S = 100
       K = strikes[[i]][[j]]
-      mkt_px[[i]] = prices[[i]][[j]]
-      sv_est[[i]] = HestonCallClosedForm(kappa, theta, miu, rho, 0.11, r, tau, S, K)
+      mkt_px = c( mkt_px, prices[[i]][[j]] )
+      sv_est = c( sv_est, HestonCallClosedForm(kappa, theta, miu, rho, 0.11, r, tau, S, K) )
     }
   }
+  #print(mkt_px)
+  #print(sv_est)
   return (MSE(sv_est, mkt_px))
 }
 ```
@@ -209,19 +211,34 @@ simulated_annealing <- function(param_vectors){
   rho<- param_vectors[[4]]
   sol <- param_vectors
   old_cost <- loss_function(c(a, theta, nu, rho))
+  best_cost <- 100000
+  best_sol <- NULL
   T <- 1.0
   T_min <- 1e-4
   alpha <- 0.9
   while (T > T_min){
     print(T)
+    a <- best_sol[[1]]
+    theta <- best_sol[[2]]
+    miu <- best_sol[[3]]
+    rho <- best_sol[[4]]
+    kappa <- (a + miu^2)/ (2*theta)
+    print(c(kappa, theta, miu, rho))
     for (i in 1: 100){
       new_sol <- neighbor(sol)
       #print(new_sol)
       new_cost <- loss_function(new_sol)
-      ap = acceptance_probability(old_cost, new_cost, T)
-      if (ap > runif(1, 0, 1)){
+      if(new_cost < old_cost){
         sol <- new_sol
-        old_cost <- new_cost 
+        if( new_cost < best_cost){
+          best_sol = new_sol
+        }
+      } else {
+        ap = acceptance_probability(old_cost, new_cost, T)
+        if (ap > runif(1, 0, 1)){
+          sol <- new_sol
+          old_cost <- new_cost 
+        } 
       }
     }
     T <- T * alpha
@@ -261,14 +278,14 @@ for(i in 1:length(T)){
 ```
 
 ```{r}
-prices
+prices[[1]][[3]]
 ```
 
 
 ```{r}
 
 for(i in length(T) * length(strikes[[1]])){
-  print(c(mkt_px[[i]], sv_est[[i]]))
+  
 }
 ```
 
