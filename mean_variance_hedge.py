@@ -160,7 +160,7 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
     mu = const.r
     for i in range (n_sim):
         s[i][0] = s_0
-        v_t = sigma_0
+        v_t = sigma_0**2
         rv = 0
         t = 0
         d_t = T / n_step
