@@ -33,8 +33,8 @@ def gamma(n_sim, n_step, alpha, theta, phi, rho, s_t, sigma_t, t, T):
 N_SIM = 10000
 N_STEP = 10000
 ALPHA = 10.97858327
-THETA = 0.12214962
-PHI = 0.00001
+THETA = 0.0214962
+PHI = 0.01362476
 RHO = -0.55156066
 
 print(delta(N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, 100, 0.11, 0, 1))

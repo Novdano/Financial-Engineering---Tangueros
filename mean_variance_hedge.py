@@ -36,7 +36,7 @@ def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=c
     mu = const.r
     for i in range (n_sim):
         s[i][0] = s_0
-        v_t = sigma_0
+        v_t = sigma_0**2
         rv = 0
         d_t = T / n_step
         for j in range (n_step-1):
@@ -89,8 +89,8 @@ def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0
 N_SIM = 100
 N_STEP = 100
 ALPHA = 10.97858327
-THETA = 0.12214962
-PHI = 0.00001
+THETA = 0.0214962   
+PHI = 0.01362476
 RHO = -0.55156066
 S_0 = const.s_0
 SIGMA_0 = const.atm_iv_1m
@@ -151,10 +151,67 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
 #############################################################################
 # Dynamic Hedging
 #############################################################################
-
 #n_rebalance is the number of times to rebalance in 1 year, done at an equal interval
-def dynamic_hedge_portfolio(n_stock, n_var_swap, n_sim, n_step, n_rebalance, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
-    
+#assume market is very liquid, so hedging has no market impact
+def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
+    s = np.zeros((n_sim, n_step))
+    var_swap_T = np.zeros((n_sim,1))
+    p = np.zeros((n_sim,1))
+    mu = const.r
+    for i in range (n_sim):
+        s[i][0] = s_0
+        v_t = sigma_0
+        rv = 0
+        t = 0
+        d_t = T / n_step
+        next_t_rebalance = 0
+        dt_rebalance = T / n_rebalance
+        n_stock = 0
+        n_var_swap = 0
+        rebalance_profit = 0
+        curr_var_swap_strike = 0
+        for j in range (n_step-1):
+            if (v_t < 0):
+                v_t = 0
+            if ( t >= next_t_rebalance):
+                #do simulated annealing, find n_stock, n_var_swap and rebalance
+                new_n_stock, new_n_var_swap, new_old_var = sim_anneal(0,0, n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t, s_max=s_max)
+                var_swap_strike = var_swap_replication( n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t)
+                #rebalance the portfolio
+                delta_stock_notional = (new_n_stock - n_stock) * s_t
+                delta_var_swap_notional = (new_n_var_swap - n_var_swap)
+                rebalance_profit = delta_stock_notional + delta_var_swap_notional
+                n_stock = new_n_stock
+                n_var_swap = new_n_var_swap
+                #update next rebalance time
+                next_t_rebalance += dt_rebalance
+            d_w_t_1 = np.random.normal(0, 1, 1)
+            d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_t**0.5 * d_w_t_1
+            s[i][j+1] = max(s[i][j]+d_s_t[0],1)
+            R_t = math.log(s[i][j+1]/s[i][j])
+            rv += (R_t)**2
+            if(s[i][j+1] >= s_max):
+                s_max = s[i][j+1]
+            d_w_t_2 = np.random.normal(0, 1, 1)
+            d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
+            d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_3
+            v_t += d_v_t
+            t += dt
+        drawdown = (s_max-s[i][-1])/s_max
+        if (drawdown > 0.1):
+            p[i] = max((rv - (const.bs_vol+0.05)**2),0) * const.notional
+        var_swap_T[i] = (rv - var_swap_strike**2)
+    s_T = s[:,-1].reshape(-1,1)
+    return s_T, p, var_swap_T
+
+
+
+
+
+
+
+
+
 
 
 
