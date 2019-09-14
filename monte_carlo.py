@@ -53,6 +53,7 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
     s = np.zeros((n_sim, n_step))
     p = np.zeros((n_sim,1))
     mu = const.r
+    s_max_list = np.zeros((n_sim,1))
     for i in range (n_sim):
         s[i][0] = s_0
         v_t = sigma_0**2
@@ -60,14 +61,14 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
         d_t = T / n_step
         s_max = s_0
         for j in range (n_step-1):
-            if (v_t < 0):
-                v_t = 0
+            # if (v_t < 0):
+            #     v_t = 0
             d_w_t_1 = np.random.normal(0, 1, 1)
             #jump = np.random.normal(const.jump_m,const.jump_v,1)
             #d_n_t = np.random.normal(0, 1, 1)
             #d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_t**0.5 * d_w_t_1 \
                         #+ s[i][j]*(math.exp(jump)-1)*d_n_t*d_t**0.5
-            d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_t**0.5 * d_w_t_1
+            d_s_t = mu * s[i][j] * d_t + (v_t**0.5) * s[i][j] * (d_t**0.5) * d_w_t_1
             s[i][j+1] = s[i][j]+d_s_t[0]
             R_t = np.log(s[i][j+1]/s[i][j])
             rv += (R_t)**2
@@ -75,10 +76,15 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
                 s_max = s[i][j+1]
             d_w_t_2 = np.random.normal(0, 1, 1)
             d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
-            d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_3
+            d_v_t = alpha * (theta - v_t) * d_t + phi * (v_t**0.5) * (d_t**0.5) * d_w_t_3
             v_t += d_v_t
+<<<<<<< HEAD
         print(s)
         print(s[i][-1])
+=======
+        #print(i, s[i][-1], s_max, (s_max-s[i][-1])/s_max, math.sqrt(rv))
+        s_max_list[i] = s_max
+>>>>>>> 990813a5a905396cd91d1e3bd69a0cd1ae4337cf
         drawdown = (s_max-s[i][-1])/s_max
         #print(drawdown)
         if (drawdown > 0.1):
@@ -130,16 +136,20 @@ def mc_report(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=cons
     return v_T, rv_T, s_T
 
 def check_s_martingale(s):
-    discounted_s = np.sum(mc_s[:,-1] )/len( mc_s[:,-1] ) * math.exp(-const.r)
+    discounted_s = np.sum(s[:,-1] )/len(s[:,-1] ) * math.exp(-const.r)
     return discounted_s
 
-def plot_mc(p, filename):
+def plot_p(p, filename):
     plt.hist(p, 50,facecolor='g')
     plt.ylabel('Frequency')
     plt.xlabel("Payoff")
     plt.grid(True)
     plt.title("Histogram of Structure Payoff")
     plt.savefig(filename)
+    plt.show()
+
+def plot(s):
+    plt.plot(s.T)
     plt.show()
 
 #returns the 5% VaR and 95% VaR
@@ -156,11 +166,24 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 #There's a 95% chance that the client may lose $0.07980 oper 1$
 
 
+<<<<<<< HEAD
 print("running...")
 #mc_s, mc_p = mc_df(100, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #np.save("mc_s_10000_10000",mc_s)
 #np.save("mc_p_10000_10000",mc_p)
 print("saved")
+=======
+# print("running...")
+# mc_s, mc_p = mc_df(10000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+# np.save("mc_s_10000_10000",mc_s)
+# np.save("mc_p_10000_10000",mc_p)
+# print("saved")
+
+#s100, p100, max100 = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+#s1000,p1000, max1000 = mc_df(100, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+s1000,p1000 = mc_df(1000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+
+>>>>>>> 990813a5a905396cd91d1e3bd69a0cd1ae4337cf
 
 
 mc_s1, mc_p1 = mc_vanilla(1000, 1000, ALPHA, THETA, PHI, RHO, 100, 0.11, 70, 1.5, option=const.PUT)

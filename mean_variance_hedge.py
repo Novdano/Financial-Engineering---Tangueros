@@ -8,13 +8,13 @@ from random import random
 N_SIM = 100
 N_STEP = 100
 ALPHA = 10.97858327
-THETA = 0.027225000000000003 
+THETA = 0.027225000000000003
 PHI = 0.01362476
 RHO = -0.55156066
 S_0 = const.s_0
 SIGMA_0 = const.atm_iv_1m
 TIME = 1
-VAR_SWAP_STRIKE = 0.1607084448114974
+VAR_SWAP_STRIKE = 0.17024441677562885
 
 def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
     #strike_percentage =  np.array([50,55,60,65,70,75,80,120,125,130,135,140,145,150]) * 0.01
@@ -32,16 +32,15 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
             is_call = 0
         s, p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, forward, sigma_0, strike_i, T, is_call)
         p_0[i] = np.mean(p) * math.exp(-const.r * T)
+        print("i")
     p_0_percentage = p_0 / forward
     replication_price = np.sum(p_0_percentage * weight) * 2 / T
     var_swap_strike = math.sqrt(replication_price / math.exp(-const.r * T))
     return replication_price, var_swap_strike
 
 
-#price, var_swap_strike = var_swap_replication(1000, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
-#print(price, var_swap_strike)
-#var_swap_strike = 0.265604
-
+price, var_swap_strike = var_swap_replication(1000, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+print(price, var_swap_strike)
 
 def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike=VAR_SWAP_STRIKE,s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
@@ -80,7 +79,7 @@ def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swa
 def portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
     #print("s_T: ",s_T,"p:", p,"var_swap_T", var_swap_T)
-    return np.var(n_stock * s_T + n_var_swap * var_swap_T - p * const.hedge_notional- (n_stock*s_0 + const.charge) * math.exp(const.r * T))
+    return np.var(n_stock * s_T + n_var_swap * var_swap_T - p * const.hedge_notional - (n_stock*s_0 - const.charge * const.hedge_notional) * math.exp(const.r * T))
 
 def client_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s, p = mc.mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
@@ -88,7 +87,7 @@ def client_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=con
 
 def portfolio_return(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
-    return np.mean(n_stock * s_T + n_var_swap * var_swap_T - p * const.hedge_notional- (n_stock*s_0 + const.charge * const.hedge_notional) * math.exp(const.r * T))
+    return np.mean(n_stock * s_T + n_var_swap * var_swap_T - p * const.hedge_notional - (n_stock*s_0 - const.charge * const.hedge_notional) * math.exp(const.r * T))
 
 def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     constraints = { "type": "eq", 'fun': portfolio_return, 'args': (n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max, )  }
