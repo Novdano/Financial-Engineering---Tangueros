@@ -24,8 +24,8 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     var_swap_strike = math.sqrt(replication_price / math.exp(-const.r * T))
     return replication_price, var_swap_strike
 
-price, var_swap_strike = var_swap_replication(1000, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
-print(price, var_swap_strike)
+#price, var_swap_strike = var_swap_replication(1000, 1000, 2, 0.08, 0.2, -0.5, const.s_0, const.atm_iv_1m, 1)
+#print(price, var_swap_strike)
 #var_swap_strike = 0.265604
 #var_swap_strike = 0.16
 
@@ -178,12 +178,12 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
                 v_t = 0
             if ( t >= next_t_rebalance):
                 #do simulated annealing, find n_stock, n_var_swap and rebalance
-                new_n_stock, new_n_var_swap, new_old_var = sim_anneal(0,0, n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t, s_max=s_max)
+                new_n_stock, new_n_var_swap, new_old_var = sim_anneal(0,0, n_sim, n_step, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), T-t, s_max=s_max)
                 n_stock_list.append(new_n_stock)
                 n_var_swap_list.append(new_n_var_swap)
-                new_var_swap_strike = var_swap_replication( n_sim, n_step, alpha, theta, phi, rho, s_t, math.sqrt(v_t), T-t)
+                new_var_swap_strike = var_swap_replication( n_sim, n_step, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), T-t)
                 #rebalance the portfolio
-                delta_stock_notional = (new_n_stock - n_stock) * s_t
+                delta_stock_notional = (new_n_stock - n_stock) * s[i][j]
                 var_swap_mtm = dt_rebalance/(T - next_t_rebalance) * ( rv - curr_var_swap_strike**2 ) + \
                                     (T-next_t_rebalance - dt_rebalance)/(T-next_t_rebalance) * ( new_var_swap_strike - curr_var_swap_strike )
                 delta_var_swap_notional = n_var_swap * var_swap_mtm

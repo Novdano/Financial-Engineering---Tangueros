@@ -30,6 +30,7 @@ def gamma(n_sim, n_step, alpha, theta, phi, rho, s_t, sigma_t, t, T):
     delta_2 = delta(n_sim, n_step_left, alpha, theta, phi, rho, s_t+0.5, sigma_t, t, T)
     return delta_1 - delta_2
 
+
 N_SIM = 10000
 N_STEP = 10000
 ALPHA = 10.97858327
