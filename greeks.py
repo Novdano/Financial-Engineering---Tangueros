@@ -9,8 +9,9 @@ def delta(n_sim, n_step, alpha, theta, phi, rho, s_t, sigma_t, t, T):
     mc_s_up, mc_p_up = mc.mc_df (n_sim, n_step_left, alpha, theta, phi, rho, s_t + 0.01, sigma_t, T-t)
     mc_s_down, mc_p_down = mc.mc_df (n_sim, n_step_left, alpha, theta, phi, rho, s_t - 0.01, sigma_t, T-t)
     r = const.r
-    res = math.exp(-r*(T-t)) * np.sum(mc_p_up) - math.exp(-r*(T-t)) * np.sum(mc_p_down)
-    print(math.exp(-r*(T-t)) * np.sum(mc_p_up), math.exp(-r*(T-t)) * np.sum(mc_p_down))
+    res = math.exp(-r*(T-t)) * np.mean(mc_p_up) - math.exp(-r*(T-t)) * np.mean(mc_p_down)
+    std_error = math.sqrt(np.var(mc_p_up) + np.var(mc_p_down))
+    print(math.exp(-r*(T-t)) * np.mean(mc_p_up), math.exp(-r*(T-t)) * np.mean(mc_p_down), std_error)
     return res/(2 * 0.01)
 
 #1 vol point shock
@@ -19,8 +20,9 @@ def vega(n_sim, n_step, alpha, theta, phi, rho, s_t, sigma_t, t, T):
     mc_s_up, mc_p_up = mc.mc_df (n_sim, n_step_left, alpha, theta, phi, rho, s_t, sigma_t + 0.5, T-t)
     mc_s_down, mc_p_down = mc.mc_df (n_sim, n_step_left, alpha, theta, phi, rho, s_t, sigma_t - 0.5, T-t)
     r = const.r
-    res = math.exp(-r*(T-t)) * np.sum(mc_p_up) - math.exp(-r*(T-t)) * np.sum(mc_p_down)
-    print(math.exp(-r*(T-t)) * np.sum(mc_p_up), math.exp(-r*(T-t)) * np.sum(mc_p_down))
+    res = math.exp(-r*(T-t)) * np.mean(mc_p_up) - math.exp(-r*(T-t)) * np.mean(mc_p_down)
+    std_error = math.sqrt(np.var(mc_p_up) + np.var(mc_p_down))
+    print(math.exp(-r*(T-t)) * np.mean(mc_p_up), math.exp(-r*(T-t)) * np.mean(mc_p_down), std_error)
     return res
 
 
@@ -34,7 +36,7 @@ def gamma(n_sim, n_step, alpha, theta, phi, rho, s_t, sigma_t, t, T):
 N_SIM = 10000
 N_STEP = 10000
 ALPHA = 10.97858327
-THETA = 0.0214962
+THETA = 0.027225000000000003
 PHI = 0.01362476
 RHO = -0.55156066
 

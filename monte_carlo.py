@@ -170,7 +170,28 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 #s100, p100, max100 = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #s1000,p1000, max1000 = mc_df(100, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 
-#s1000,p1000 = mc_df(1000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+# s_up,p_up = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*1.01, const.s_0, const.atm_iv_1m, 1)
+# s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*0.99, const.s_0, const.atm_iv_1m, 1)
+# price_shock = (np.mean(p_up) - np.mean(p_down))/2
+# price_var = math.sqrt(np.var(p_up) + np.var(p_up))/2e9
+# print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
+# s_up,p_up = mc_df(10000, 1000, ALPHA*1.01, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+# s_down,p_down = mc_df(10000, 1000, ALPHA*0.99, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+# price_shock = (np.mean(p_up) - np.mean(p_down))/2
+# print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_up))/2e9)
+# s_up,p_up = mc_df(10000, 1000, ALPHA, THETA*1.01, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+# s_down,p_down = mc_df(10000, 1000, ALPHA, THETA*0.99, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+# price_shock = (np.mean(p_up) - np.mean(p_down))/2
+# print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
+# s_up,p_up = mc_df(10000, 1000, ALPHA, THETA, PHI*1.01, RHO, const.s_0, const.atm_iv_1m, 1)
+# s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI*0.99, RHO, const.s_0, const.atm_iv_1m, 1)
+# price_shock = (np.mean(p_up) - np.mean(p_down))/2
+# print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
+# s_up,p_up = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*1.01, const.s_0, const.atm_iv_1m, 1)
+# s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*0.99, const.s_0, const.atm_iv_1m, 1)
+# price_shock = (np.mean(p_up) - np.mean(p_down))/2
+# print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
+
 
 
 
