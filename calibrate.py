@@ -229,10 +229,9 @@ def main_lsq():
 #main_minim()
 #main_minim()
 #main_lsq()
-0.0214962
-print(loss_function( [10.97858327,  0.02514962,  0.01362476, -0.55156066] ))
+print(loss_function( [10.97858327,  0.027225000000000003,  0.01362476, -0.55156066] ))
 
 #lsq_term()
-
+     
 #print(calibrate_sv([set_alpha, set_phi, set_rho]))
 
