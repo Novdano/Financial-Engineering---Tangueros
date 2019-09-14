@@ -78,7 +78,7 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
             d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
             d_v_t = alpha * (theta - v_t) * d_t + phi * (v_t**0.5) * (d_t**0.5) * d_w_t_3
             v_t += d_v_t
-        print(i, s[i][-1], s_max, (s_max-s[i][-1])/s_max, math.sqrt(rv))
+        #print(i, s[i][-1], s_max, (s_max-s[i][-1])/s_max, math.sqrt(rv))
         s_max_list[i] = s_max
         drawdown = (s_max-s[i][-1])/s_max
         #print(drawdown)
