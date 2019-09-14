@@ -78,13 +78,9 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
             d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
             d_v_t = alpha * (theta - v_t) * d_t + phi * (v_t**0.5) * (d_t**0.5) * d_w_t_3
             v_t += d_v_t
-<<<<<<< HEAD
-        print(s)
-        print(s[i][-1])
-=======
         #print(i, s[i][-1], s_max, (s_max-s[i][-1])/s_max, math.sqrt(rv))
-        s_max_list[i] = s_max
->>>>>>> 990813a5a905396cd91d1e3bd69a0cd1ae4337cf
+        #s_max_list[i] = s_max
+
         drawdown = (s_max-s[i][-1])/s_max
         #print(drawdown)
         if (drawdown > 0.1):
@@ -166,13 +162,6 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 #There's a 95% chance that the client may lose $0.07980 oper 1$
 
 
-<<<<<<< HEAD
-print("running...")
-#mc_s, mc_p = mc_df(100, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
-#np.save("mc_s_10000_10000",mc_s)
-#np.save("mc_p_10000_10000",mc_p)
-print("saved")
-=======
 # print("running...")
 # mc_s, mc_p = mc_df(10000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 # np.save("mc_s_10000_10000",mc_s)
@@ -183,7 +172,6 @@ print("saved")
 #s1000,p1000, max1000 = mc_df(100, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #s1000,p1000 = mc_df(1000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 
->>>>>>> 990813a5a905396cd91d1e3bd69a0cd1ae4337cf
 
 
 mc_s1, mc_p1 = mc_vanilla(1000, 1000, ALPHA, THETA, PHI, RHO, 100, 0.11, 70, 1.5, option=const.PUT)
