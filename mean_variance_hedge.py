@@ -153,10 +153,6 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
 #############################################################################
 # Dynamic Hedging
 #############################################################################
-
-p_1notional = 0.0005563042475756588
-p_95top = 0.002577168779626 
-
 #n_rebalance is the number of times to rebalance in 1 year, done at an equal interval
 #assume market is very liquid, so hedging has no market impact
 def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
