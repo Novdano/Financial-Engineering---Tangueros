@@ -79,8 +79,7 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
             d_v_t = alpha * (theta - v_t) * d_t + phi * (v_t**0.5) * (d_t**0.5) * d_w_t_3
             v_t += d_v_t
         #print(i, s[i][-1], s_max, (s_max-s[i][-1])/s_max, math.sqrt(rv))
-        #s_max_list[i] = s_max
-
+        s_max_list[i] = s_max
         drawdown = (s_max-s[i][-1])/s_max
         #print(drawdown)
         if (drawdown > 0.1):
@@ -170,11 +169,11 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 
 #s100, p100, max100 = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #s1000,p1000, max1000 = mc_df(100, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+
+
 #s1000,p1000 = mc_df(1000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 
 
 
-mc_s1, mc_p1 = mc_vanilla(1000, 1000, ALPHA, THETA, PHI, RHO, 100, 0.11, 70, 1.5, option=const.PUT)
-mc_s2, mc_p2 = mc_vanilla(1000, 1000, ALPHA, THETA, PHI, RHO, 90, 0.17, 70, 0.5, option=const.PUT)
 
 
