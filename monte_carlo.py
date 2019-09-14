@@ -169,7 +169,7 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 
 #s100, p100, max100 = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #s1000,p1000, max1000 = mc_df(100, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
-s1000,p1000 = mc_df(1000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+#s1000,p1000 = mc_df(1000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 
 
 
