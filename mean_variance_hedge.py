@@ -1,5 +1,4 @@
 import numpy as np 
-from scipy.optimize import minimize
 import math
 import const
 import monte_carlo as mc 
@@ -15,6 +14,7 @@ S_0 = const.s_0
 SIGMA_0 = const.atm_iv_1m
 TIME = 1
 VAR_SWAP_STRIKE = 0.17024441677562885
+
 
 def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T):
     #strike_percentage =  np.array([50,55,60,65,70,75,80,120,125,130,135,140,145,150]) * 0.01
@@ -39,8 +39,8 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     return replication_price, var_swap_strike
 
 
-price, var_swap_strike = var_swap_replication(1000, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
-print(price, var_swap_strike)
+#price, var_swap_strike = var_swap_replication(1000, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+#print(price, var_swap_strike)
 
 def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike=VAR_SWAP_STRIKE,s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
@@ -149,6 +149,7 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
     return n_stock, n_var_swap, old_var
 
 
+n_s, n_vs, var = sim_anneal(-1,1,100,100,ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
 
 #############################################################################
 # Dynamic Hedging
@@ -222,7 +223,6 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
 
 
 #dynamic_hedge_portfolio( 100, 100, 4, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
-
 
 
 
