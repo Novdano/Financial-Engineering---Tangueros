@@ -1,0 +1,20 @@
+
+
+price with 2,000,000,000 (2bn) notional = 4,169,033.3671381674
+1$ notional price = 0.00208451668
+percentage of drawdown = 0.23
+variance swap replication price = 0.024787224122292797
+variance swap strike (in vol) = 0.1607084448114974
+
+
+
+########### HESTON PARAMETERS #############
+N_SIM = 100
+N_STEP = 100
+ALPHA = 10.97858327
+THETA = 0.02514962 
+PHI = 0.01362476
+RHO = -0.55156066
+S_0 = const.s_0
+SIGMA_0 = const.atm_iv_1m
+TIME = 1
