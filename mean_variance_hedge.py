@@ -8,7 +8,7 @@ from random import random
 N_SIM = 100
 N_STEP = 100
 ALPHA = 10.97858327
-THETA = 0.02514962 
+THETA = 0.027225000000000003
 PHI = 0.01362476
 RHO = -0.55156066
 S_0 = const.s_0
@@ -38,10 +38,8 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     return replication_price, var_swap_strike
 
 
-#price, var_swap_strike = var_swap_replication(1000, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
-#print(price, var_swap_strike)
-#var_swap_strike = 0.265604
-
+price, var_swap_strike = var_swap_replication(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+print(price, var_swap_strike)
 
 def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike=VAR_SWAP_STRIKE,s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
