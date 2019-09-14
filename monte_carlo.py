@@ -8,7 +8,7 @@ import pandas
 N_SIM = 100
 N_STEP = 100
 ALPHA = 10.97858327
-THETA = 0.02514962
+THETA = 0.027225000000000003
 PHI = 0.01362476
 RHO = -0.55156066
 S_0 = const.s_0
@@ -77,7 +77,8 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
             d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
             d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_3
             v_t += d_v_t
-        #print(s[i][-1], s_max)
+        print(s)
+        print(s[i][-1])
         drawdown = (s_max-s[i][-1])/s_max
         #print(drawdown)
         if (drawdown > 0.1):
@@ -156,13 +157,13 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 
 
 print("running...")
-mc_s, mc_p = mc_df(10000, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
-np.save("mc_s_10000_10000",mc_s)
-np.save("mc_p_10000_10000",mc_p)
+#mc_s, mc_p = mc_df(100, 10000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
+#np.save("mc_s_10000_10000",mc_s)
+#np.save("mc_p_10000_10000",mc_p)
 print("saved")
 
 
-
-
+mc_s1, mc_p1 = mc_vanilla(1000, 1000, ALPHA, THETA, PHI, RHO, 100, 0.11, 70, 1.5, option=const.PUT)
+mc_s2, mc_p2 = mc_vanilla(1000, 1000, ALPHA, THETA, PHI, RHO, 90, 0.17, 70, 0.5, option=const.PUT)
 
 
