@@ -5,7 +5,8 @@ s_0 = 100
 r = 0.0411
 atm_iv_1m = 0.11
 T = [0.25, 0.5, 0.75, 1]
-notional = 1
+notional = 2000000000
+hedge_notional = 1
 bs_vol = 0.11
 strikes = [[95, 100 ,105],
             [95, 100 ,105],
