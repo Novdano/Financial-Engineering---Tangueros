@@ -1,7 +1,10 @@
 
-
+Results from 1000 simulation, 10000 step
 price with 2,000,000,000 (2bn) notional = 4,169,033.3671381674
-1$ notional price = 0.00208451668
+1$ notional price = 0.0005563042475756588   (2bn notional = 1112608.4951513177)
+95% quantile = 0.0025771687796262654 (2bn notional = 5154337.55925253)
+np.std(p1000) = 1837114.1599321088
+
 percentage of drawdown = 0.23
 variance swap replication price = 0.024787224122292797
 variance swap strike (in vol) = 0.1607084448114974
