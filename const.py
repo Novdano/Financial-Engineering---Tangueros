@@ -20,4 +20,4 @@ prices = [[6.5757, 2.8223, 0.6335],
 
 jump_m, jump_v = 0.1, 0.02
 
-charge = 0.1
+charge = 0.0014

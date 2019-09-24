@@ -1,7 +1,8 @@
 import numpy as np 
 import math
 import const
-import monte_carlo as mc 
+import monte_carlo as mc
+import greeks 
 from random import random
 
 N_SIM = 100
@@ -32,7 +33,6 @@ def var_swap_replication(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
             is_call = 0
         s, p = mc.mc_vanilla(n_sim, n_step, alpha, theta, phi, rho, forward, sigma_0, strike_i, T, is_call)
         p_0[i] = np.mean(p) * math.exp(-const.r * T)
-        print("i")
     p_0_percentage = p_0 / forward
     replication_price = np.sum(p_0_percentage * weight) * 2 / T
     var_swap_strike = math.sqrt(replication_price / math.exp(-const.r * T))
@@ -76,17 +76,17 @@ def mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swa
 
 
 
-def portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
+def portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike=VAR_SWAP_STRIKE, s_max=const.s_0):
     s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
     #print("s_T: ",s_T,"p:", p,"var_swap_T", var_swap_T)
     return np.var(n_stock * s_T + n_var_swap * var_swap_T - p * const.hedge_notional - (n_stock*s_0 - const.charge * const.hedge_notional) * math.exp(const.r * T))
 
 def client_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
-    s, p = mc.mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
+    s, p = mc.mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max)
     return np.var(p * const.hedge_notional - const.charge)
 
-def portfolio_return(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
-    s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
+def portfolio_return(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike=VAR_SWAP_STRIKE, s_max=const.s_0):
+    s_T, p, var_swap_T = mc_portfolio(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike, s_max)
     return np.mean(n_stock * s_T + n_var_swap * var_swap_T - p * const.hedge_notional - (n_stock*s_0 - const.charge * const.hedge_notional) * math.exp(const.r * T))
 
 def minimize_var(n_stock, n_var_swap, n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
@@ -106,32 +106,32 @@ def acceptence_probability(old_var, new_var, T):
     return math.exp((old_var-new_var)/T)
 
 
-def neighbor(n_stock, n_var_swap):
+def neighbor(n_stock, n_var_swap, var_swap_strike=VAR_SWAP_STRIKE):
     sd_s = 0.1
     sd_v = 0.1
     new_n_stock = np.random.normal(n_stock,sd_s,1)[0]
     new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
-    mean = portfolio_return(n_stock, n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
-    while(mean < TARGET_RETURN):
-        #sd_s *= 2
-        #sd_v *=2
+    mean = portfolio_return(n_stock, n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME, var_swap_strike)
+    while(mean < TARGET_RETURN or new_n_stock > 0 or new_n_var_swap < 0):
+        sd_s *= 2
+        sd_v *=2
         new_n_stock = np.random.normal(n_stock,sd_s,1)[0]
         new_n_var_swap = np.random.normal(n_var_swap,sd_v,1)[0]
         mean = portfolio_return(new_n_stock, new_n_var_swap, N_SIM, N_STEP, ALPHA, THETA, PHI, RHO, S_0, SIGMA_0, TIME)
     return new_n_stock, new_n_var_swap, mean
 
 
-def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
-    old_var = portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0)
+def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike=VAR_SWAP_STRIKE, s_max=const.s_0):
+    old_var = portfolio_var(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
     T = 1
-    T_min = 10**(-4)
+    T_min = 10**(-2)
     a = 0.9
     best_var = 1000000
     best_sol = None
     while(T > T_min):
         for i in range (100):
-            new_n_stock, new_n_var_swap, mean = neighbor(n_stock, n_var_swap)
-            new_var = portfolio_var(new_n_stock, new_n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T)
+            new_n_stock, new_n_var_swap, mean = neighbor(n_stock, n_var_swap, var_swap_strike)
+            new_var = portfolio_var(new_n_stock, new_n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, var_swap_strike)
             accept_prob = acceptence_probability(old_var, new_var, T)
             if (new_var < old_var):
                 n_stock, n_var_swap = new_n_stock, new_n_var_swap
@@ -149,16 +149,17 @@ def sim_anneal(n_stock, n_var_swap,n_sim, n_step, alpha, theta, phi, rho, s_0, s
     return n_stock, n_var_swap, old_var
 
 
-n_s, n_vs, var = sim_anneal(-1,1,100,100,ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
+#n_s, n_vs, var = sim_anneal(-1,1,100,100,ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
 
 #############################################################################
 # Dynamic Hedging
 #############################################################################
+
 #n_rebalance is the number of times to rebalance in 1 year, done at an equal interval
 #assume market is very liquid, so hedging has no market impact
 def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
     s = np.zeros((n_sim, n_step))
-    rebalance_profit_list = np.zeros((n_sim,1))
+    rebalance_profit_list = np.zeros((n_sim,n_rebalance))
     p = np.zeros((n_sim,1))
     mu = const.r
     for i in range (n_sim):
@@ -177,21 +178,36 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
         n_stock_list = []
         n_var_swap_list = []
         s_max = s_0
+        print("Simulation %d"%(i+1))
         for j in range (n_step-1):
             if (v_t < 0):
                 v_t = 0
             if ( t >= next_t_rebalance):
                 #do simulated annealing, find n_stock, n_var_swap and rebalance
-                new_n_stock, new_n_var_swap, new_old_var = sim_anneal(0,0, n_sim, n_step, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), T-t, s_max=s_max)
+                rep_price, new_var_swap_strike = var_swap_replication( 100, 100, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), T-t )
+                #1% vol change 
+                rep_price, var_swap_up = var_swap_replication( 100, 100, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t)+0.01, T-t )
+                #with 1% increase in implied vol, var swap payoff decreases by this amount
+                var_swap_vega = (new_var_swap_strike - var_swap_up) / 0.01
+                structure_delta = greeks.delta(100, 100, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), t, T) / 2e9
+                structure_vega = greeks.vega(100, 100, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), t, T) / 2e9
+                new_n_stock = -structure_delta
+                new_n_var_swap = -structure_vega / var_swap_vega
+                #print(t, next_t_rebalance)
+                #print(new_n_stock)
+                #print(n_var_swap)
+                #new_n_stock, new_n_var_swap, new_old_var = sim_anneal(0,0, n_sim, n_step, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), T-t, new_var_swap_strike, s_max)
                 n_stock_list.append(new_n_stock)
                 n_var_swap_list.append(new_n_var_swap)
-                new_var_swap_strike = var_swap_replication( n_sim, n_step, alpha, theta, phi, rho, s[i][j], math.sqrt(v_t), T-t)
                 #rebalance the portfolio
                 delta_stock_notional = (new_n_stock - n_stock) * s[i][j]
+                #print("time scale", dt_rebalance/(T - next_t_rebalance))
                 var_swap_mtm = dt_rebalance/(T - next_t_rebalance) * ( rv - curr_var_swap_strike**2 ) + \
                                     (T-next_t_rebalance - dt_rebalance)/(T-next_t_rebalance) * ( new_var_swap_strike - curr_var_swap_strike )
                 delta_var_swap_notional = n_var_swap * var_swap_mtm
                 rebalance_profit = delta_stock_notional + delta_var_swap_notional
+                rebalance_profit_list[i][int(t/dt_rebalance)] = rebalance_profit
+                #print(rebalance_profit)
                 #update variables
                 n_stock = new_n_stock
                 n_var_swap = new_n_var_swap
@@ -199,6 +215,7 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
                 rv_var_swap = 0 #reset the accumulated realized variance
                 #update next rebalance time
                 next_t_rebalance += dt_rebalance
+                #print("")
             d_w_t_1 = np.random.normal(0, 1, 1)
             d_s_t = mu * s[i][j] *d_t + (v_t**0.5) * s[i][j] * d_t**0.5 * d_w_t_1
             s[i][j+1] = max(s[i][j]+d_s_t[0],1)
@@ -211,18 +228,20 @@ def dynamic_hedge_portfolio(n_sim, n_step, n_rebalance, alpha, theta, phi, rho, 
             d_w_t_3= rho * d_w_t_1 + (1-rho**2)**0.5 * d_w_t_2
             d_v_t = alpha * ( theta - v_t) * d_t + phi * (v_t**0.5) * d_t**0.5 * d_w_t_3
             v_t += d_v_t
-            t += dt
+            t += d_t
         drawdown = (s_max-s[i][-1])/s_max
+        #print("payoff components:", s[i][-1], s_max, rv)
         if (drawdown > 0.1):
-            p[i] = max((rv - (const.bs_vol+0.05)),0) * const.notional
-        rebalance_profit += n_stock * s_t
+            p[i] = max((math.sqrt(rv) - (const.bs_vol+0.05)),0) * const.notional
+        rebalance_profit += n_stock * s[i][-1]
         rebalance_profit += ( rv_var_swap - curr_var_swap_strike**2) * n_var_swap
-        rebalance_profit_list[i] = rebalance_profit
+        rebalance_profit_list[i][-1] = rebalance_profit
+        print(s_max, s_0, drawdown)
     s_T = s[:,-1].reshape(-1,1)
     return rebalance_profit_list, s_T, p
 
 
-#dynamic_hedge_portfolio( 100, 100, 4, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
+r, s, p = dynamic_hedge_portfolio( 1000, 100, 2, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1, const.s_0 )
 
 
 

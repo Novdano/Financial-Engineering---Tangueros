@@ -84,7 +84,7 @@ def mc_df(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
         #print(drawdown)
         if (drawdown > 0.1):
             p[i] = max((math.sqrt(rv) - (const.bs_vol+0.05)),0) * const.notional 
-    print(np.count_nonzero(p)/n_sim)  
+    #print(np.count_nonzero(p)/n_sim)  
     return s, p
 
 def mc_report(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_0):
@@ -170,6 +170,7 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 #s100, p100, max100 = mc_df(100, 100, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 #s1000,p1000, max1000 = mc_df(100, 1000, ALPHA, THETA, PHI, RHO, const.s_0, const.atm_iv_1m, 1)
 
+
 # s_up,p_up = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*1.01, const.s_0, const.atm_iv_1m, 1)
 # s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*0.99, const.s_0, const.atm_iv_1m, 1)
 # price_shock = (np.mean(p_up) - np.mean(p_down))/2
@@ -187,10 +188,11 @@ def p_var(n_sim, n_step, alpha, theta, phi, rho, s_0, sigma_0, T, s_max=const.s_
 # s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI*0.99, RHO, const.s_0, const.atm_iv_1m, 1)
 # price_shock = (np.mean(p_up) - np.mean(p_down))/2
 # print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
-# s_up,p_up = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*1.01, const.s_0, const.atm_iv_1m, 1)
-# s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*0.99, const.s_0, const.atm_iv_1m, 1)
-# price_shock = (np.mean(p_up) - np.mean(p_down))/2
-# print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
+#s_up,p_up = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*1.01, const.s_0, const.atm_iv_1m, 1)
+#s_down,p_down = mc_df(10000, 1000, ALPHA, THETA, PHI, RHO*0.99, const.s_0, const.atm_iv_1m, 1)
+#price_shock = (np.mean(p_up) - np.mean(p_down))/2
+#print(price_shock, price_shock/2e9, math.sqrt(np.var(p_up) + np.var(p_down))/2e9)
+
 
 
 

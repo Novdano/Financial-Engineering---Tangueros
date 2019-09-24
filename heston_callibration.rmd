@@ -137,8 +137,13 @@ HestonCallMonteCarlo <-
 
 
 ```{r}
-HestonCallClosedForm(1.77, 0.1, 0.05096, -0.3997, 0.11, 0.0411, 1, 100, 100)
-#HestonCallMonteCarlo(2, 0.08, 0.2, -0.5, 0.11, 0.0411, 1, 100, 100, vneg = 0)
+kappa = 10.97858327
+theta = 0.027225000000000003
+phi = 0.01362476
+rho = -0.55156066
+HestonCallClosedForm(kappa, theta, phi, rho, 0.11, 0.0411, 1.5, 100, 120)
+HestonCallClosedForm(kappa, theta, phi, rho, 0.17, 0.0411, 0.5, 110, 120)
+#HestonCallMonteCarlo(kappa, theta, phi, rho, 0.11, 0.0411, 1.5, 100, 80, vneg = 0)
 ```
 
 
@@ -173,6 +178,16 @@ loss_function <- function(param_vectors){
 ```
 
 ```{r}
+kappa = 10.97858327
+theta = 0.02514962
+phi = 0.262476
+rho = -0.55156066
+alpha = 2*kappa * theta - phi^2
+loss_function(c(alpha, theta, phi, rho))
+```
+
+
+```{r}
 neighbor <- function(param_vectors){
   a <- param_vectors[[1]]
   theta <- param_vectors[[2]]
@@ -188,10 +203,10 @@ neighbor <- function(param_vectors){
   newR <- rnorm(1, rho, sdR)
   while (newA<0 || newT <0.05 ||newT>1 || ((newA + nu^2)/2*newT) <0 || ((newA + nu^2)/2*newT) >5 || nu > 1 || nu < 0
          ||rho< -1||rho > 1 ){
-    sdA <- sdA/2
-    sdT <- sdT/2
-    sdN <- sdN/2
-    sdR <- sdR/2
+    sdA <- sdA * 2
+    sdT <- sdT * 2
+    sdN <- sdN * 2
+    sdR <- sdR * 2
     newA <- rnorm(1, a, sdA)
     newT <- rnorm(1, theta, sdT)
     newN <- rnorm (1, nu, sdN)
@@ -248,7 +263,12 @@ simulated_annealing <- function(param_vectors){
 ```
 
 ```{r}
-params <- simulated_annealing(c(2 * 2 * 0.1 - 0.467514601^2,0.1,0.467514601,-0.50903932))
+kappa = 10.97858327
+theta = 0.02514962
+phi = 0.262476
+rho = -0.55156066
+alpha = 2*kappa * theta - phi^2
+params <- simulated_annealing(c(alpha, theta, phi, rho))
 a <- params[[1]]
 theta <- params[[2]]
 miu <- params[[3]]
