@@ -1,4 +1,5 @@
 import math
+from scipy.stats import norm
 
 dt = 0.25
 
@@ -20,10 +21,8 @@ for i in range(len(F)):
     else:
         P.append(P[-1] * math.exp(-F[i]*dt))
 
-P
 
 ISD = [
-    0,
     0.2416,
     0.2228,
     0.2016,
@@ -32,3 +31,14 @@ ISD = [
     0.1609,
     0.1686
     ]
+
+def black_atm_caplet_price(K, sigma, T, dt, r):
+    d1 = (((sigma**2)/2) * T)/(sigma * math.sqrt(T))
+    d2 = d1 - sigma * math.sqrt(T)
+    N_d1 = norm.cdf(d1)
+    N_d2 = norm.cdf(d2)
+    return( (K * N_d1 - K * N_d2)*math.exp(-r*T) * dt )
+
+mkt_caplet_price = []
+for i in range(len(ISD)):
+    mkt_caplet_price.append(black_atm_caplet_price(F[i+1], ISD[i], 0.25*(i+1), dt, F[0]))
