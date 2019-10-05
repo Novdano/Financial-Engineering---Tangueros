@@ -28,10 +28,10 @@ def caplet_price(num_paths, alphas, phi, dt, t, T1):
             tau += dt
             prev_short_yield = -math.log(curr_bond_price[risk_free_index])/dt
             prev_long_yield = -math.log(curr_bond_price[risk_free_index + 3])
+            Z1 = np.random.standard_normal(1)[0]
+            Z2 = np.random.standard_normal(1)[0]
             #for every bond, we want to move the bond price forward by 1 step
             for i in range(len(curr_bond_price)):
-                Z1 = np.random.standard_normal(1)[0]
-                Z2 = np.random.standard_normal(1)[0]
                 curr_bond_price[i] = curr_bond_price[i] * (1 + r * dt + 
                                     v1[i] * math.sqrt(dt) * Z1 + 
                                     v2[i] * math.sqrt(dt)* Z2)
@@ -126,20 +126,27 @@ def check_price(alphas, phi):
     print(const.mkt_caplet_price[0], const.mkt_caplet_price[1], const.mkt_caplet_price[2], const.mkt_caplet_price[3])
 
 
-def calibrate(alphas, phi, lr0 = 0.5, tol = 1e-6, decay = 1.1):
-    alphas = calibrate_alpha(alphas, phi, lr0, tol, decay)
-    phi = calibrate_phi(alphas, phi, lr0, tol, 1.0000001)
+def calibrate(alphas, phi, lr0 = 0.1, tol = 0.000001, decay = 1.1):
+    alphas = calibrate_alpha(alphas, phi, lr0, 1e-5, decay)
+    #phi = calibrate_phi(alphas, 0.1, lr0, tol, 1.0000001)
     return(alphas, phi)
 
 
 
 
-alphas = [0.1 for i in range(4)]
-#alphas = [0.00155283823521463750374, 0.0038955190315124991, 0.010730041238505948, 0.01911808647589217]
-#alphas = [0.001742543935841888, 0.007243796201666534, 0.02619491436914619, 0.06989472923075597]
-phi = 3
-alphas, phi = calibrate(alphas, phi)
-print(caplet_price(1000, alphas, phi, 0.25, 0, 1))
+#alphas = [0.1 for i in range(4)]
+#alphas = [0.0007933531054793789, 0.0002741856578150153, 6.562750490064817e-05, 8.149990323380371e-05] #phi = 3.3
+#alphas = [0.000998623968725623, 0.0003094669015269544, 4.905818435642512e-05, 5.2634248541918144e-05] #phi = 2.64298
+#alphas = [0.0012834699645740623, 0.00026616290811232765, 2.452909217821256e-05, 3.57987667293167e-05] #phi = 2.1
+#alphas = [0.0013001425982507085, 0.00026882453719345094, 2.379844944555294e-05, 3.5426848362429415e-05] #phi = 2.25
+#alphas = [0.0014160124495893158, 0.0003252776900040757, 1.6726724772166804e-05, 2.409686451733034e-05] #phi = 1.81
+#alphas = [0.0013873581504275968, 0.00028980197022567325, 1.6726724772166804e-05, 2.3858543879246853e-05] #phi = 2.24
+#alphas = [0.001236048883025226, 0.00038562137070394557, 1.963581759360895e-05, 2.3858543879246853e-05] #phi = 1.95
+#alphas = [0.001236048883025226, 0.00038562137070394557, 1.5595565521263067e-05, 1.780439606846251e-05]
+alphas =  [0.0013596537713277488, 0.00038562137070394557, 1.871467862551568e-05, 1.4567233146923872e-05]
+phi = 1.94
+#alphas, phi = calibrate(alphas, phi)
+#print(caplet_price(1000, alphas, phi, 0.25, 0, 1))
 #print("alphas", alphas)
 #check_price(alphas, phi)
 

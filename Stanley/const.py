@@ -52,3 +52,6 @@ def black_atm_caplet_price(K, sigma, T, dt, r):
 mkt_caplet_price = []
 for i in range(len(ISD)):
     mkt_caplet_price.append(black_atm_caplet_price(F[i+1], ISD[i], 0.25*(i+1), dt, F[0]))
+
+alphas = [0.0013596537713277488, 0.00038562137070394557, 1.871467862551568e-05, 1.4567233146923872e-05]
+phi = 1.94
