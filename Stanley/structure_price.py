@@ -5,7 +5,11 @@ import numpy as np
 
 def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
     payoffs = []
+    prices = []
     knock_in = 0
+    three_m_rate = []
+    one_y_rate = []
+    spread = []
     for path in range(num_paths):
         tau = t
         #index i is bond price for 0, 0.25*(i+1)
@@ -42,15 +46,24 @@ def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
         three_m_bond_yield = -math.log(curr_bond_price[risk_free_index])/dt
         one_y_bond_yield = -math.log(curr_bond_price[risk_free_index+3])
         final_spread = one_y_bond_yield - three_m_bond_yield
+        three_m_rate.append(three_m_bond_yield)
+        one_y_rate.append(one_y_bond_yield)
+        spread.append(final_spread)
         r = -math.log(three_m_bond_price)/dt
         percentage_change = (final_spread - initial_spread)/initial_spread
         if (percentage_change < -0.5):
             knock_in += 1
-            payoff = max((r - const.F[risk_free_index]),0) * discount 
+            price = max((r - const.F[risk_free_index]),0) * discount 
         else:
-            payoff = 0
-        payoffs.append(payoff)
-    print(knock_in/num_paths)
-    return np.mean(payoffs)
+            price = 0
+        payoffs.append(price / discount)
+        prices.append(price)
+    #np.savetxt( "1000000path_structure_payoff.csv" ,payoffs )
+    np.savetxt( "1000000path_3m_yield.csv" ,three_m_rate )
+    np.savetxt( "1000000path_1y_yield.csv" ,one_y_rate )
+    np.savetxt( "1000000path_spread.csv" ,spread )
+    #print(knock_in/num_paths)
+    return np.mean(price), np.std(price), np.mean(three_m_rate), np.mean(one_y_rate), np.mean(spread),\
+            np.std(three_m_rate), np.std(one_y_rate), np.std(spread)
 
-print(knock_in_caplet(100000, const.alphas, 0.0609, const.phi, 0.25, 0, 1 ))
+print(knock_in_caplet(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1 ))
