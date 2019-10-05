@@ -6,6 +6,8 @@ import numpy as np
 def caplet_price(num_paths, alphas, phi, dt, t, T1):
     payoffs = []
     total_corr = 0
+    change_short = []
+    change_long = []
     for path in range(num_paths):
         tau = t
         #index i is bond price for 0, 0.25*(i+1)
@@ -13,8 +15,6 @@ def caplet_price(num_paths, alphas, phi, dt, t, T1):
         curr_bond_price = copy.deepcopy(const.P)
         v1 = [0 for i in range(len(curr_bond_price))]
         v2 = [0 for i in range(len(curr_bond_price))]
-        change_short = []
-        change_long = []
         #loop move bond price forward by 1 time step
         while(tau < T1):
             risk_free_index = int(tau/dt)
@@ -48,10 +48,10 @@ def caplet_price(num_paths, alphas, phi, dt, t, T1):
         #print(r)
         payoff = max((r - const.F[risk_free_index]),0) * discount 
         payoffs.append(payoff)
-        correlation = np.corrcoef(change_short, change_long)
-        correlation = correlation[0][1]
-        total_corr += correlation
-    return np.mean(payoffs), total_corr/num_paths
+    correlation = np.corrcoef(change_short, change_long)
+    correlation = correlation[0][1]
+    total_corr += correlation
+    return np.mean(payoffs), correlation
 
 
 
@@ -118,12 +118,15 @@ def calibrate_phi(alphas, phi, lr0, tol, decay):
     return(phi)
 
 def check_price(alphas, phi):
-    c1, _ = caplet_price(1000, alphas, phi, 0.25, 0, 0.25)
-    c2, _ = caplet_price(1000, alphas, phi, 0.25, 0, 0.5)
-    c3, _ = caplet_price(1000, alphas, phi, 0.25, 0, 0.75)
-    c4, _ = caplet_price(1000, alphas, phi, 0.25, 0, 1)
-    print(c1, c2, c3, c4)
-    print(const.mkt_caplet_price[0], const.mkt_caplet_price[1], const.mkt_caplet_price[2], const.mkt_caplet_price[3])
+    c1, _ = caplet_price(100000, alphas, phi, 0.25, 0, 0.25)
+    c2, _ = caplet_price(100000, alphas, phi, 0.25, 0, 0.5)
+    c3, _ = caplet_price(100000, alphas, phi, 0.25, 0, 0.75)
+    c4, _ = caplet_price(100000, alphas, phi, 0.25, 0, 1)
+    mdl_p = np.array([c1, c2, c3, c4])
+    mkt_p = np.array([const.mkt_caplet_price[0], const.mkt_caplet_price[1], 
+                    const.mkt_caplet_price[2], const.mkt_caplet_price[3]])
+    return( np.mean(np.square(mdl_p - mkt_p) ))
+
 
 
 def calibrate(alphas, phi, lr0 = 0.1, tol = 0.000001, decay = 1.1):
@@ -143,12 +146,13 @@ def calibrate(alphas, phi, lr0 = 0.1, tol = 0.000001, decay = 1.1):
 #alphas = [0.0013873581504275968, 0.00028980197022567325, 1.6726724772166804e-05, 2.3858543879246853e-05] #phi = 2.24
 #alphas = [0.001236048883025226, 0.00038562137070394557, 1.963581759360895e-05, 2.3858543879246853e-05] #phi = 1.95
 #alphas = [0.001236048883025226, 0.00038562137070394557, 1.5595565521263067e-05, 1.780439606846251e-05]
-alphas =  [0.0013596537713277488, 0.00038562137070394557, 1.871467862551568e-05, 1.4567233146923872e-05]
-phi = 1.94
+#alphas =  [0.0013596537713277488, 0.00038562137070394557, 1.871467862551568e-05, 1.4567233146923872e-05]
+#alphas = [0.0016337120054001582, 0.0003926087242999385, 1.8374411741415394e-05, 1.4852394803269864e-05]
+#phi = 1.4
 #alphas, phi = calibrate(alphas, phi)
-#print(caplet_price(1000, alphas, phi, 0.25, 0, 1))
+print(caplet_price(10000, const.alphas, const.phi, 0.25, 0, 1))
 #print("alphas", alphas)
-#check_price(alphas, phi)
+#print(check_price(const.alphas, const.phi))
 
 
 
