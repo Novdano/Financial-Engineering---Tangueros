@@ -3,14 +3,20 @@ import copy
 import math
 import numpy as np
 
-def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
+def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
     payoffs = []
     knock_in = 0
+    P = []
+    for i in range(len(F)):
+        if(i == 0):
+            P.append(math.exp(-F[i] * dt))
+        else:
+            P.append(P[-1] * math.exp(-F[i]*dt))
     for path in range(num_paths):
         tau = t
         #index i is bond price for 0, 0.25*(i+1)
         discount = 1
-        curr_bond_price = copy.deepcopy(const.P)
+        curr_bond_price = copy.deepcopy(P)
         v1 = [0 for i in range(len(curr_bond_price))]
         v2 = [0 for i in range(len(curr_bond_price))]
         three_m_bond_yield = -math.log(curr_bond_price[0])/dt
@@ -46,11 +52,40 @@ def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
         percentage_change = (final_spread - initial_spread)/initial_spread
         if (percentage_change < -0.5):
             knock_in += 1
-            payoff = max((r - const.F[risk_free_index]),0) * discount 
+            payoff = max((r - K),0) * discount 
         else:
             payoff = 0
         payoffs.append(payoff)
     print(knock_in/num_paths)
+    payoff_std = np.std(np.array(payoffs)/discount)
+    print("payoffs standard deviation", payoff_std)
+    print("price", np.mean(payoffs))
+    print("5% quantile", np.quantile(np.array(payoffs)/discount, 0.05))
+    print("95% quantile", np.quantile(np.array(payoffs)/discount, 0.95))
     return np.mean(payoffs)
 
-print(knock_in_caplet(100000, const.alphas, 0.0609, const.phi, 0.25, 0, 1 ))
+print(knock_in_caplet(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
+
+#knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1)
+def delta(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
+    F_up = copy.deepcopy(F)
+    F_down = copy.deepcopy(F)
+    bp = 0.0001
+    F_up[4] += bp
+    F_down[4] -= bp
+    price_up = knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1, F_up)
+    price_down = knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1, F_down)
+    d = (price_up - price_down) / 2
+    print("delta", d)
+    return d
+
+#print(delta(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
+
+
+
+
+
+
+
+
+
