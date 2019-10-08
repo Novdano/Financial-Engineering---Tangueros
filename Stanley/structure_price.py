@@ -3,18 +3,24 @@ import copy
 import math
 import numpy as np
 
-def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
+def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
     payoffs = []
     prices = []
     knock_in = 0
     three_m_rate = []
     one_y_rate = []
     spread = []
+    P = []
+    for i in range(len(F)):
+        if(i == 0):
+            P.append(math.exp(-F[i] * dt))
+        else:
+            P.append(P[-1] * math.exp(-F[i]*dt))
     for path in range(num_paths):
         tau = t
         #index i is bond price for 0, 0.25*(i+1)
         discount = 1
-        curr_bond_price = copy.deepcopy(const.P)
+        curr_bond_price = copy.deepcopy(P)
         v1 = [0 for i in range(len(curr_bond_price))]
         v2 = [0 for i in range(len(curr_bond_price))]
         three_m_bond_yield = -math.log(curr_bond_price[0])/dt
@@ -53,7 +59,7 @@ def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
         percentage_change = (final_spread - initial_spread)/initial_spread
         if (percentage_change < -0.5):
             knock_in += 1
-            price = max((r - const.F[risk_free_index]),0) * discount 
+            price = max((r - K),0) * discount 
         else:
             price = 0
         payoffs.append(price / discount)
@@ -63,7 +69,20 @@ def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1):
     np.savetxt( "1000000path_1y_yield.csv" ,one_y_rate )
     np.savetxt( "1000000path_spread.csv" ,spread )
     #print(knock_in/num_paths)
+    payoff_std = np.std(np.array(payoffs))
+    # print("payoffs standard deviation", payoff_std)
+    # print("price", np.mean(payoffs))
+    # print("5% quantile", np.quantile(np.array(payoffs), 0.05))
+    # print("95% quantile", np.quantile(np.array(payoffs), 0.95))
     return np.mean(price), np.std(price), np.mean(three_m_rate), np.mean(one_y_rate), np.mean(spread),\
             np.std(three_m_rate), np.std(one_y_rate), np.std(spread)
 
-print(knock_in_caplet(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1 ))
+
+
+
+
+#print(knock_in_caplet(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
+
+#knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1)
+
+
