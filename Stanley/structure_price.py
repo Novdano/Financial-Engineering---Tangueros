@@ -64,7 +64,7 @@ def knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
     print("95% quantile", np.quantile(np.array(payoffs)/discount, 0.95))
     return np.mean(payoffs)
 
-print(knock_in_caplet(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
+#print(knock_in_caplet(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
 
 #knock_in_caplet(num_paths, alphas, K, phi, dt, t, T1)
 def delta(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
@@ -82,9 +82,33 @@ def delta(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
 #print(delta(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
 
 
+def gamma(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
+    F_up = copy.deepcopy(F)
+    F_down = copy.deepcopy(F)
+    bp = 0.0001
+    F_up[4] += bp
+    F_down[4] -= bp
+    d_up = delta(num_paths, alphas, K, phi, dt, t, T1, F_up)
+    d_down = delta(num_paths, alphas, K, phi, dt, t, T1, F_down)
+    g = (d_up - d_down) / 2
+    print("gamma", g)
+    return g
+    
+print(gamma(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1))
+
+def alpha_shock(num_paths, alphas, K, phi, dt, t, T1, F = const.F):
+    price = []
+    for i in range (len(alphas)):
+        alphas_i = copy.deepcopy(alphas)
+        alphas_i[i] *= 1.01
+        price.append(knock_in_caplet(num_paths, alphas_i, K, phi, dt, t, T1, F))
+    return price
 
 
-
+#print(alpha_shock(1000000, const.alphas, 0.0609, const.phi, 0.25, 0, 1, F = const.F))
+#shock_phi_price = knock_in_caplet(1000000, const.alphas, 0.0609, const.phi * 1.01, 0.25, 0, 1)
+structure_price = 0.00096671872
+#print(shock_phi_price - structure_price)
 
 
 
